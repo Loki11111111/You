@@ -24,12 +24,11 @@
             color: var(--text-main);
             background-color: var(--bg-color);
             line-height: 1.7;
-            overflow: hidden; /* Блокируем скролл тела, скроллим контейнеры */
+            overflow: hidden; 
             height: 100vh;
             width: 100vw;
         }
 
-        /* Дышащий фон */
         .ambient-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle at 50% 50%, rgba(234, 227, 210, 0.5) 0%, rgba(249, 248, 246, 0) 80%);
@@ -43,189 +42,175 @@
             100% { transform: scale(1.2); opacity: 1; }
         }
 
+        /* --- АНИМАЦИЯ РЫБКИ И ТЕКСТА --- */
+        .fish-wrapper {
+            position: fixed;
+            top: 50%;
+            left: -30%; /* Спрятана слева */
+            z-index: 500;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .fish-emoji {
+            font-size: 6rem;
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
+            transform: scaleX(-1); /* Рыба плывет вправо */
+        }
+
+        .fish-bubble {
+            background: #fff;
+            color: #1A1C1B;
+            padding: 1rem 2rem;
+            border-radius: 30px;
+            border-bottom-left-radius: 5px; /* Хвостик облачка */
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-left: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 2px solid var(--accent-warm);
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Анимация проплывания рыбки до середины */
+        .fish-wrapper.swim {
+            animation: swimToCenter 1.5s ease-out forwards;
+        }
+
+        /* Появление текста рыбки */
+        .fish-wrapper.swim .fish-bubble {
+            opacity: 1;
+            transform: scale(1);
+            transition-delay: 1.2s; /* Текст появляется после того, как рыба выплыла */
+        }
+
+        @keyframes swimToCenter {
+            0% { left: -30%; opacity: 1; transform: translateY(0) rotate(5deg); }
+            50% { transform: translateY(-20px) rotate(-5deg); }
+            100% { left: 50%; opacity: 1; transform: translate(-50%, 0) rotate(0deg); }
+        }
+
+        /* Дополнительная кнопка-сюрприз */
+        .btn-surprise {
+            margin-top: 2rem;
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--text-muted);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: var(--transition-slow);
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-family: 'Montserrat', sans-serif;
+            cursor: pointer;
+        }
+        
+        .btn-surprise.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .btn-surprise:hover {
+            background: var(--text-muted);
+            color: #fff;
+        }
+
         h1, h2, h3, .serif {
             font-family: 'Cormorant Garamond', serif;
             font-weight: 500; color: #1A1C1B; line-height: 1.3;
         }
 
-        /* --- ГЛАВНЫЙ КОНТЕЙНЕР ШАГА (ИСПРАВЛЕН СКРОЛЛ) --- */
         .step-container {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            /* Flexbox для вертикального центрирования с учетом скролла */
             display: flex; flex-direction: column; align-items: center;
-            
             opacity: 0; pointer-events: none; transform: translateY(40px) scale(0.98);
             transition: var(--transition-slow);
-            
-            /* Разрешаем скролл внутри шага */
-            overflow-y: auto; 
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch; /* Плавность на iOS */
+            overflow-y: auto; overflow-x: hidden;
+            -webkit-overflow-scrolling: touch; 
         }
 
-        /* Эти псевдоэлементы толкают контент в центр, если места много,
-           но не мешают скроллу, если места мало (как на мобильном) */
-        .step-container::before,
-        .step-container::after {
-            content: '';
-            flex: 1 0 auto; /* Гибкая высота */
-            min-height: 2rem; /* Минимальный отступ сверху/снизу */
+        .step-container::before, .step-container::after {
+            content: ''; flex: 1 0 auto; min-height: 2rem; 
         }
         
-        .step-container.active {
-            opacity: 1; pointer-events: auto; transform: translateY(0) scale(1);
-            z-index: 10;
-        }
-        .step-container.exit {
-            opacity: 0; transform: translateY(-40px) scale(0.98);
-        }
+        .step-container.active { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); z-index: 10; }
+        .step-container.exit { opacity: 0; transform: translateY(-40px) scale(0.98); }
 
-        /* Внутренний блок контента */
         .content-box {
-            width: 100%; max-width: 600px;
-            padding: 1rem 1.5rem; /* Безопасные отступы по бокам */
-            display: flex; flex-direction: column; align-items: center; text-align: center;
-            flex-shrink: 0; /* Запрещает блоку сжиматься */
+            width: 100%; max-width: 600px; padding: 1rem 1.5rem; 
+            display: flex; flex-direction: column; align-items: center; text-align: center; flex-shrink: 0; 
         }
 
-        /* Анимация элементов */
-        .anim-item {
-            opacity: 0; transform: translateY(15px); filter: blur(3px);
-            transition: var(--transition-slow);
-        }
-        .active .anim-item.show {
-            opacity: 1; transform: translateY(0); filter: blur(0);
-        }
+        .anim-item { opacity: 0; transform: translateY(15px); filter: blur(3px); transition: var(--transition-slow); }
+        .active .anim-item.show { opacity: 1; transform: translateY(0); filter: blur(0); }
 
-        /* Кнопки */
         .btn-next {
-            margin-top: 3rem; padding: 1.2rem 3.5rem;
-            background: var(--btn-bg); color: var(--btn-text);
-            border: none; border-radius: 50px;
-            font-family: inherit; font-size: 1.1rem; letter-spacing: 1px;
-            cursor: pointer; transition: var(--transition-fast);
-            opacity: 0; transform: translateY(10px); pointer-events: none;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            margin-bottom: 2rem; /* Отступ снизу для мобильных */
+            margin-top: 3rem; padding: 1.2rem 3.5rem; background: var(--btn-bg); color: var(--btn-text);
+            border: none; border-radius: 50px; font-family: inherit; font-size: 1.1rem; letter-spacing: 1px;
+            cursor: pointer; transition: var(--transition-fast); opacity: 0; transform: translateY(10px); 
+            pointer-events: none; box-shadow: 0 10px 20px rgba(0,0,0,0.1); margin-bottom: 2rem; 
         }
         .active .btn-next.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
         .btn-next:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
 
-        .highlight {
-            background: linear-gradient(120deg, var(--accent-warm) 0%, transparent 100%);
-            padding: 0 8px; border-radius: 4px;
-        }
+        .highlight { background: linear-gradient(120deg, var(--accent-warm) 0%, transparent 100%); padding: 0 8px; border-radius: 4px; }
+        .aesthetic-img { width: 100%; max-width: 450px; height: 250px; object-fit: cover; border-radius: 20px; margin: 1.5rem 0; box-shadow: 0 15px 40px rgba(0,0,0,0.08); border: 4px solid #fff; }
 
-        /* Изображения */
-        .aesthetic-img {
-            width: 100%; max-width: 450px; height: 250px;
-            object-fit: cover; border-radius: 20px;
-            margin: 1.5rem 0; box-shadow: 0 15px 40px rgba(0,0,0,0.08);
-            border: 4px solid #fff;
-        }
+        .sticker { display: inline-block; animation: float 4s ease-in-out infinite; font-size: 1.8rem; line-height: 1; }
+        @keyframes float { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-10px) rotate(5deg); } }
 
-        /* Стикеры */
-        .sticker {
-            display: inline-block;
-            animation: float 4s ease-in-out infinite;
-            font-size: 1.8rem; line-height: 1;
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(-5deg); }
-            50% { transform: translateY(-10px) rotate(5deg); }
-        }
-
-        /* Теги */
-        .value-tags {
-            display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 1.5rem 0 2.5rem 0;
-        }
-        .value-tag {
-            background: #fff; border: 1px solid #EAE3D2;
-            padding: 10px 20px; border-radius: 30px;
-            font-size: 1.05rem; box-shadow: 0 5px 15px rgba(0,0,0,0.03);
-            display: flex; align-items: center; gap: 8px;
-            transition: transform 0.3s ease;
-        }
-
-        /* Пути */
+        .value-tags { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 1.5rem 0 2.5rem 0; }
+        .value-tag { background: #fff; border: 1px solid #EAE3D2; padding: 10px 20px; border-radius: 30px; font-size: 1.05rem; box-shadow: 0 5px 15px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 8px; transition: transform 0.3s ease; }
         .path-grid { display: flex; flex-direction: column; gap: 1rem; width: 100%; margin-top: 1.5rem; }
-        .path-btn {
-            background: rgba(255,255,255,0.7); border: 1px solid #EAE3D2;
-            padding: 1.5rem; border-radius: 20px; cursor: pointer;
-            font-family: 'Cormorant Garamond', serif; font-size: 1.6rem;
-            transition: var(--transition-fast); backdrop-filter: blur(10px);
-            display: flex; justify-content: center; align-items: center; gap: 10px;
-        }
+        .path-btn { background: rgba(255,255,255,0.7); border: 1px solid #EAE3D2; padding: 1.5rem; border-radius: 20px; cursor: pointer; font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; transition: var(--transition-fast); backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; gap: 10px; }
         .path-btn:hover { background: #fff; }
-        .path-content {
-            display: none; text-align: left; padding: 2rem;
-            background: #fff; border-radius: 20px; margin-top: 0.5rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #F0EEE9;
-            animation: fadeInDown 0.5s forwards;
-        }
+        .path-content { display: none; text-align: left; padding: 2rem; background: #fff; border-radius: 20px; margin-top: 0.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #F0EEE9; animation: fadeInDown 0.5s forwards; }
         .path-content p { margin-bottom: 0.8rem; font-size: 1.05rem; position: relative; padding-left: 20px; }
-        .path-content p::before {
-            content: ''; position: absolute; left: 0; top: 10px;
-            width: 6px; height: 6px; background: var(--accent-warm); border-radius: 50%;
-        }
+        .path-content p::before { content: ''; position: absolute; left: 0; top: 10px; width: 6px; height: 6px; background: var(--accent-warm); border-radius: 50%; }
         .path-content .serif::before { display: none; }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Эмоции */
         .emotions { display: flex; flex-direction: column; gap: 12px; width: 100%; margin-top: 2rem; }
-        .emotion-btn {
-            background: rgba(255,255,255,0.5); border: 1px solid #DCE2D9;
-            padding: 1.2rem; border-radius: 30px; cursor: pointer;
-            font-family: inherit; font-size: 1.1rem; transition: var(--transition-fast);
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
+        .emotion-btn { background: rgba(255,255,255,0.5); border: 1px solid #DCE2D9; padding: 1.2rem; border-radius: 30px; cursor: pointer; font-family: inherit; font-size: 1.1rem; transition: var(--transition-fast); display: flex; align-items: center; justify-content: center; gap: 10px; }
         .emotion-btn.selected { background: #fff; border-color: var(--text-main); transform: scale(1.02); }
-        .sys-message {
-            margin-top: 2rem; font-family: 'Cormorant Garamond', serif;
-            font-size: 1.4rem; font-style: italic; color: var(--text-main);
-            min-height: 80px; display: flex; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.5s ease; padding: 0 1rem;
-        }
+        .sys-message { margin-top: 2rem; font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-style: italic; color: var(--text-main); min-height: 80px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.5s ease; padding: 0 1rem; }
 
-        /* Сертификат */
-        .cert-box {
-            background: #fff; border: 1px solid #EAE3D2; padding: 3rem 2rem;
-            border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.05);
-            position: relative; width: 100%;
-        }
-        .cert-box::before {
-            content: ''; position: absolute; top: 8px; left: 8px; right: 8px; bottom: 8px;
-            border: 1px solid #F0EEE9; border-radius: 8px; pointer-events: none;
-        }
+        .cert-box { background: #fff; border: 1px solid #EAE3D2; padding: 3rem 2rem; border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.05); position: relative; width: 100%; }
+        .cert-box::before { content: ''; position: absolute; top: 8px; left: 8px; right: 8px; bottom: 8px; border: 1px solid #F0EEE9; border-radius: 8px; pointer-events: none; }
         .cert-list { text-align: left; margin: 2rem auto; max-width: 320px; list-style: none; }
         .cert-list li { margin-bottom: 1rem; font-size: 1.1rem; position: relative; padding-left: 30px; }
         .cert-list li::before { content: '✦'; position: absolute; left: 0; color: #D4C9B8; font-size: 1.2rem; }
 
-        /* Таймлайн */
         .timeline { border-left: 2px solid var(--accent-warm); padding-left: 2rem; text-align: left; margin-top: 2rem; width: 100%; max-width: 400px; }
         .time-step { margin-bottom: 2.5rem; position: relative; }
-        .time-step::before {
-            content: ''; position: absolute; left: -2.4rem; top: 6px;
-            width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 3px solid #C4BBAF;
-        }
+        .time-step::before { content: ''; position: absolute; left: -2.4rem; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 3px solid #C4BBAF; }
         .time-step h3 { font-size: 1.4rem; margin-bottom: 0.3rem; }
 
         @media (max-width: 768px) {
-            h1 { font-size: 2.2rem; }
-            h2 { font-size: 1.8rem; }
-            .path-btn { font-size: 1.3rem; padding: 1rem; }
-            .value-tag { font-size: 0.95rem; padding: 8px 16px; }
-            .aesthetic-img { height: 200px; }
+            h1 { font-size: 2.2rem; } h2 { font-size: 1.8rem; } .path-btn { font-size: 1.3rem; padding: 1rem; } .aesthetic-img { height: 200px; }
+            .fish-emoji { font-size: 4rem; }
+            .fish-bubble { font-size: 1.4rem; padding: 0.8rem 1.5rem; }
+            .fish-wrapper { flex-direction: column; top: 40%; }
+            .fish-bubble { margin-left: 0; margin-top: 10px; border-bottom-left-radius: 30px; border-top-left-radius: 5px; } 
         }
     </style>
 </head>
 <body>
 
     <div class="ambient-bg" id="ambient-bg"></div>
+
+    <div id="fish" class="fish-wrapper">
+        <div class="fish-emoji">🐠</div>
+        <div class="fish-bubble">Удачи тебе рыбка</div>
+    </div>
 
     <div class="step-container active" id="step-1">
         <div class="content-box">
@@ -264,7 +249,6 @@
                     <p>Расширишь границы своих возможностей.</p>
                     <p class="serif" style="font-size: 1.6rem; text-align: center; margin-top: 1.5rem; color: #1A1C1B;">Ты вырастешь.</p>
                 </div>
-
                 <button class="path-btn" onclick="togglePath('path-lose', this)">🌍 Если грант не получится</button>
                 <div class="path-content" id="path-lose">
                     <p>У тебя останутся знания и сертификаты.</p>
@@ -286,7 +270,7 @@
             <p class="anim-item highlight" style="display: inline-block; font-size: 1.2rem; margin-bottom: 2rem;">Грант не создаёт твою значимость.</p>
             <p class="anim-item serif" style="font-size: 1.6rem; margin-bottom: 1.5rem;">Её создаёт:</p>
             <div class="value-tags anim-item">
-                <div class="value-tag">💡 Твой труд  </div>
+                <div class="value-tag">💡 Твой труд</div>
                 <div class="value-tag">📚 Твоя системность</div>
                 <div class="value-tag">🔥 Твоя настойчивость</div>
                 <div class="value-tag">🚀 Смелость попробовать</div>
@@ -364,7 +348,8 @@
             <p class="anim-item serif" style="font-size: 1.6rem; margin-bottom: 0.5rem;">Сделай всё, что можешь.</p>
             <p class="anim-item serif" style="font-size: 1.6rem; margin-bottom: 0.5rem;">Немного выдохни.</p>
             <p class="anim-item serif" style="font-size: 1.6rem; margin-bottom: 3rem;">Позволь событиям развиваться естественно.</p>
-            <button class="btn-next anim-item" style="background: var(--text-main); border-radius: 8px; font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; padding: 1.2rem 3.5rem;" onclick="finalAction()">Что бы ни случилось</button>
+            
+            <button id="main-final-btn" class="btn-next anim-item" style="background: var(--text-main); border-radius: 8px; font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; padding: 1.2rem 3.5rem;" onclick="finalAction()">Что бы ни случилось</button>
             
             <div id="final-text" class="serif" style="margin-top: 2.5rem; font-size: 2.8rem; opacity: 0; transition: opacity 2s ease;">
                 ты уже движешься вперёд.
@@ -372,8 +357,10 @@
             <div id="sys-final" style="margin-top: 1.5rem; font-size: 1rem; color: var(--text-muted); opacity: 0; transition: opacity 3s ease 1s;">
                 Ты способна на все ✨
             </div>
-            <div style="height: 50px; flex-shrink: 0;"></div>
-        </div>
+            
+            <button id="surprise-btn" class="btn-surprise" onclick="showFish()">Есть ещё кое-что...</button>
+
+            <div style="height: 150px; flex-shrink: 0;"></div> </div>
     </div>
 
     <script>
@@ -381,93 +368,64 @@
 
         function animateItems(container) {
             const items = container.querySelectorAll('.anim-item');
-            items.forEach((item, index) => {
-                setTimeout(() => {
-                    item.classList.add('show');
-                }, index * 200); 
-            });
+            items.forEach((item, index) => { setTimeout(() => { item.classList.add('show'); }, index * 200); });
         }
 
         function nextStep(stepNumber) {
             const current = document.querySelector('.step-container.active');
-            if (current) {
-                current.classList.remove('active');
-                current.classList.add('exit');
-            }
-
+            if (current) { current.classList.remove('active'); current.classList.add('exit'); }
             setTimeout(() => {
                 const next = document.getElementById(`step-${stepNumber}`);
-                if (next) {
-                    next.classList.remove('exit');
-                    next.classList.add('active');
-                    next.scrollTop = 0; // Сброс скролла наверх
-                    animateItems(next);
-                }
+                if (next) { next.classList.remove('exit'); next.classList.add('active'); next.scrollTop = 0; animateItems(next); }
             }, 500);
         }
 
         function togglePath(id, btn) {
             const content = document.getElementById(id);
             if (content.style.display !== 'block') {
-                content.style.display = 'block';
-                btn.style.borderColor = '#1A1C1B';
-                btn.style.background = '#fff';
-                pathsClicked++;
-                if (pathsClicked === 1) {
-                    setTimeout(() => {
-                        document.getElementById('btn-step-3').classList.add('show');
-                    }, 800);
-                }
+                content.style.display = 'block'; btn.style.borderColor = '#1A1C1B'; btn.style.background = '#fff'; pathsClicked++;
+                if (pathsClicked === 1) { setTimeout(() => { document.getElementById('btn-step-3').classList.add('show'); }, 800); }
             }
         }
 
         function selectEmotion(btn, msg, bgGradient) {
-            document.querySelectorAll('.emotion-btn').forEach(b => {
-                b.classList.remove('selected');
-                b.style.opacity = '0.6';
-            });
-            btn.classList.add('selected');
-            btn.style.opacity = '1';
-
-            const msgBox = document.getElementById('sys-msg');
-            msgBox.style.opacity = '0';
-            
-            // Безопасное изменение фона
+            document.querySelectorAll('.emotion-btn').forEach(b => { b.classList.remove('selected'); b.style.opacity = '0.6'; });
+            btn.classList.add('selected'); btn.style.opacity = '1';
+            const msgBox = document.getElementById('sys-msg'); msgBox.style.opacity = '0';
             document.getElementById('ambient-bg').style.backgroundImage = bgGradient;
-
-            setTimeout(() => {
-                msgBox.innerHTML = msg;
-                msgBox.style.opacity = '1';
-                setTimeout(() => {
-                    document.getElementById('btn-step-5').classList.add('show');
-                }, 600);
-            }, 300);
+            setTimeout(() => { msgBox.innerHTML = msg; msgBox.style.opacity = '1'; setTimeout(() => { document.getElementById('btn-step-5').classList.add('show'); }, 600); }, 300);
         }
 
         function finalAction() {
-            // Показываем текст
+            document.getElementById('main-final-btn').style.display = 'none'; // Прячем главную кнопку
             document.getElementById('final-text').style.opacity = '1';
             document.getElementById('sys-final').style.opacity = '1';
+            document.getElementById('ambient-bg').style.backgroundImage = 'radial-gradient(circle at 50% 50%, rgba(234, 227, 210, 0.9) 0%, rgba(249, 248, 246, 0.6) 100%)';
             
-            // Меняем фон
-            document.getElementById('ambient-bg').style.backgroundImage = 
-                'radial-gradient(circle at 50% 50%, rgba(234, 227, 210, 0.9) 0%, rgba(249, 248, 246, 0.6) 100%)';
-
-            // Авто-скролл вниз, чтобы увидеть текст на мобильном
+            // Показываем кнопку сюрприза через 3 секунды
             setTimeout(() => {
+                const surpriseBtn = document.getElementById('surprise-btn');
+                surpriseBtn.classList.add('show');
+                
+                // Прокручиваем к новой кнопке
                 const step8 = document.getElementById('step-8');
-                step8.scrollTo({
-                    top: step8.scrollHeight,
-                    behavior: 'smooth'
-                });
-            }, 100);
+                step8.scrollTo({ top: step8.scrollHeight, behavior: 'smooth' });
+            }, 2500);
         }
 
-        window.onload = () => {
-            setTimeout(() => {
-                animateItems(document.getElementById('step-1'));
-            }, 300);
-        };
+        // --- ЛОГИКА РЫБКИ ---
+        function showFish() {
+            // Прячем кнопку сюрприза после нажатия
+            document.getElementById('surprise-btn').style.display = 'none';
+            
+            // Запускаем анимацию рыбки
+            document.getElementById('fish').classList.add('swim');
+            
+            // Немного затемняем фон для драматизма
+            document.getElementById('ambient-bg').style.backgroundImage = 'radial-gradient(circle at 50% 50%, rgba(220, 210, 190, 0.95) 0%, rgba(200, 190, 170, 0.8) 100%)';
+        }
+
+        window.onload = () => { setTimeout(() => { animateItems(document.getElementById('step-1')); }, 300); };
     </script>
 </body>
 </html>
