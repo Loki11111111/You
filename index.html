@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ты уже движешься вперёд</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #F9F8F6;
+            --text-main: #2C302E;
+            --text-muted: #6B706D;
+            --accent-warm: #EAE3D2;
+            --btn-bg: #1A1C1B;
+            --btn-text: #F9F8F6;
+            --transition-slow: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --transition-fast: all 0.4s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-main);
+            background-color: var(--bg-color);
+            line-height: 1.7;
+            overflow: hidden; 
+        }
+
+        /* Дышащий фон */
+        .ambient-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 50%, rgba(234, 227, 210, 0.5) 0%, rgba(249, 248, 246, 0) 80%);
+            z-index: -1; pointer-events: none;
+            animation: breathe 12s infinite alternate ease-in-out;
+            transition: background 1s ease;
+        }
+
+        @keyframes breathe {
+            0% { transform: scale(1); opacity: 0.7; }
+            100% { transform: scale(1.2); opacity: 1; }
+        }
+
+        h1, h2, h3, .serif {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 500; color: #1A1C1B; line-height: 1.3;
+        }
+
+        /* Контейнер для шагов */
+        .step-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transform: translateY(40px) scale(0.98);
+            transition: var(--transition-slow);
+            padding: 2rem; overflow-y: auto; overflow-x: hidden;
+        }
+        .step-container.active {
+            opacity: 1; pointer-events: auto; transform: translateY(0) scale(1);
+            z-index: 10;
+        }
+        .step-container.exit {
+            opacity: 0; transform: translateY(-40px) scale(0.98);
+        }
+
+        /* Внутренний блок контента */
+        .content-box {
+            max-width: 600px; width: 100%; margin: auto; padding: 2rem 0;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+        }
+
+        /* Анимация элементов */
+        .anim-item {
+            opacity: 0; transform: translateY(15px); filter: blur(3px);
+            transition: var(--transition-slow);
+        }
+        .active .anim-item.show {
+            opacity: 1; transform: translateY(0); filter: blur(0);
+        }
+
+        /* Кнопки "Далее" */
+        .btn-next {
+            margin-top: 3rem; padding: 1.2rem 3.5rem;
+            background: var(--btn-bg); color: var(--btn-text);
+            border: none; border-radius: 50px;
+            font-family: inherit; font-size: 1.1rem; letter-spacing: 1px;
+            cursor: pointer; transition: var(--transition-fast);
+            opacity: 0; transform: translateY(10px); pointer-events: none;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .active .btn-next.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .btn-next:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+
+        .highlight {
+            background: linear-gradient(120deg, var(--accent-warm) 0%, transparent 100%);
+            padding: 0 8px; border-radius: 4px;
+        }
+
+        /* Эстетичные изображения */
+        .aesthetic-img {
+            width: 100%; max-width: 450px; height: 250px;
+            object-fit: cover; border-radius: 20px;
+            margin: 1.5rem 0; box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+            border: 4px solid #fff;
+        }
+
+        /* Плавающие стикеры */
+        .sticker {
+            display: inline-block;
+            animation: float 4s ease-in-out infinite;
+            font-size: 1.8rem; line-height: 1;
+        }
+        .sticker-delay { animation-delay: 2s; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+
+        /* СТИЛЬНЫЕ СПИСКИ (Теги вместо точек) */
+        .value-tags {
+            display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 1.5rem 0 2.5rem 0;
+        }
+        .value-tag {
+            background: #fff; border: 1px solid #EAE3D2;
+            padding: 10px 20px; border-radius: 30px;
+            font-size: 1.05rem; box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+            display: flex; align-items: center; gap: 8px;
+            transition: transform 0.3s ease;
+        }
+        .value-tag:hover { transform: translateY(-3px); }
+
+        /* Интерактивные пути */
+        .path-grid { display: flex; flex-direction: column; gap: 1rem; width: 100%; margin-top: 1.5rem; }
+        .path-btn {
+            background: rgba(255,255,255,0.7); border: 1px solid #EAE3D2;
+            padding: 1.5rem; border-radius: 20px; cursor: pointer;
+            font-family: 'Cormorant Garamond', serif; font-size: 1.6rem;
+            transition: var(--transition-fast); backdrop-filter: blur(10px);
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+        }
+        .path-btn:hover { background: #fff; transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .path-content {
+            display: none; text-align: left; padding: 2rem;
+            background: #fff; border-radius: 20px; margin-top: 0.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #F0EEE9;
+            animation: fadeInDown 0.5s forwards;
+        }
+        .path-content p { margin-bottom: 0.8rem; font-size: 1.05rem; position: relative; padding-left: 20px; }
+        .path-content p::before {
+            content: ''; position: absolute; left: 0; top: 10px;
+            width: 6px; height: 6px; background: var(--accent-warm); border-radius: 50%;
+        }
+        .path-content .serif::before { display: none; } /* Убираем точку у финальной фразы */
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Эмоции */
+        .emotions { display: flex; flex-direction: column; gap: 12px; width: 100%; margin-top: 2rem; }
+        .emotion-btn {
+            background: rgba(255,255,255,0.5); border: 1px solid #DCE2D9;
+            padding: 1.2rem; border-radius: 30px; cursor: pointer;
+            font-family: inherit; font-size: 1.1rem; transition: var(--transition-fast);
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .emotion-btn:hover, .emotion-btn.selected {
+            background: #fff; border-color: var(--text-main); transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+        .sys-message {
+            margin-top: 2rem; font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem; font-style: italic; color: var(--text-main);
+            min-height: 80px; display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.5s ease; padding: 0 1rem;
+        }
+
+        /* Сертификат */
+        .cert-box {
+            background: #fff; border: 1px solid #EAE3D2; padding: 3rem 2rem;
+            border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+            position: relative; width: 100%;
+        }
+        .cert-box::before {
+            content: ''; position: absolute; top: 8px; left: 8px; right: 8px; bottom: 8px;
+            border: 1px solid #F0EEE9; border-radius: 8px; pointer-events: none;
+        }
+        .cert-list { text-align: left; margin: 2rem auto; max-width: 320px; list-style: none; }
+        .cert-list li { margin-bottom: 1rem; font-size: 1.1rem; position: relative; padding-left: 30px; }
+        .cert-list li::before { content: '✦'; position: absolute; left: 0; color: #D4C9B8; font-size: 1.2rem; }
+
+        /* Таймлайн */
+        .timeline { border-left: 2px solid var(--accent-warm); padding-left: 2rem; text-align: left; margin-top: 2rem; width: 100%; max-width: 400px; }
+        .time-step { margin-bottom: 2.5rem; position: relative; }
+        .time-step::before {
+            content: ''; position: absolute; left: -2.4rem; top: 6px;
+            width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 3px solid #C4BBAF;
+        }
+        .time-step h3 { font-size: 1.4rem; margin-bottom: 0.3rem; }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.2rem; }
+            h2 { font-size: 1.8rem; }
+            .path-btn { font-size: 1.3rem; padding: 1rem; }
+            .content-box { padding: 1rem 0; }
+            .value-tag { font-size: 0.95rem; padding: 8px 16px; }
+            .aesthetic-img { height: 200px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-bg" id="ambient-bg"></div>
+
+    <div class="step-container active" id="step-1">
+        <div class="content-box">
+            <div class="anim-item sticker">✨</div>
+            <h1 class="anim-item">Что бы ни случилось —<br>ты уже движешься вперёд</h1>
+            <p class="anim-item serif" style="font-size: 1.7rem; margin-top: 1rem;">Ты выбрала рост.</p>
+            <p class="anim-item" style="color: var(--text-muted); margin-top: 0.5rem; font-size: 1.1rem;">И это уже достижение.</p>
+            <button class="btn-next anim-item" onclick="nextStep(2)">Осознать это</button>
+        </div>
+    </div>
+
+    <div class="step-container" id="step-2">
+        <div class="content-box">
+            <h2 class="anim-item" style="margin-bottom: 1rem;">Твоя база — с тобой</h2>
+            
+            <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=800&q=80" alt="Учеба" class="aesthetic-img anim-item">
+            
+            <p class="anim-item" style="margin-bottom: 0.8rem; font-size: 1.1rem;">Ты изучаешь английский.</p>
+            <p class="anim-item" style="margin-bottom: 0.8rem; font-size: 1.1rem;">Ты серьёзно работаешь над китайским.</p>
+            <p class="anim-item" style="margin-bottom: 2rem; font-size: 1.1rem;">У тебя впереди сертификаты, знания и сильная академическая база.</p>
+            
+            <p class="anim-item serif highlight" style="display: inline-block; font-size: 1.6rem; margin-bottom: 0.5rem;">Это не случайность.</p>
+            <p class="anim-item" style="color: var(--text-muted);">Это результат дисциплины, усилий и внутренней силы.</p>
+            
+            <button class="btn-next anim-item" onclick="nextStep(3)">Посмотреть варианты</button>
+        </div>
+    </div>
+
+    <div class="step-container" id="step-3">
+        <div class="content-box">
+            <h2 class="anim-item">Два пути.<br>Один итог — <span class="highlight">развитие</span> 🌿</h2>
+            
+            <div class="path-grid anim-item">
+                <button class="path-btn" onclick="togglePath('path-win', this)">🎓 Если грант получится</button>
+                <div class="path-content" id="path-win">
+                    <p>Ты окажешься в новой стране.</p>
+                    <p>Язык выйдет на другой уровень — живой, настоящий, ежедневный.</p>
+                    <p>Появится опыт, которого невозможно получить из книг.</p>
+                    <p>Ты увидишь систему образования изнутри.</p>
+                    <p>Сможешь осознанно подготовиться к магистратуре.</p>
+                    <p>Расширишь границы своих возможностей.</p>
+                    <p class="serif" style="font-size: 1.6rem; text-align: center; margin-top: 1.5rem; color: #1A1C1B;">Ты вырастешь.</p>
+                </div>
+
+                <button class="path-btn" onclick="togglePath('path-lose', this)">🌍 Если грант не получится</button>
+                <div class="path-content" id="path-lose">
+                    <p>У тебя останутся знания и сертификаты.</p>
+                    <p>У тебя останется самое ценное — время и свобода выбора.</p>
+                    <p>Ты сможешь поехать в Китай позже — уже спокойнее.</p>
+                    <p>Посмотреть университеты без давления.</p>
+                    <p>Подать документы на магистратуру сильнее и увереннее.</p>
+                    <p class="serif" style="font-size: 1.6rem; text-align: center; margin-top: 1.5rem; color: #1A1C1B;">Ты всё равно вырастешь.</p>
+                </div>
+            </div>
+
+            <button class="btn-next" id="btn-step-3" onclick="nextStep(4)">Что действительно важно?</button>
+        </div>
+    </div>
+
+    <div class="step-container" id="step-4">
+        <div class="content-box">
+            <h2 class="anim-item" style="margin-bottom: 1rem;">Твоя ценность</h2>
+            <p class="anim-item" style="font-size: 1.2rem; margin-bottom: 0.5rem;">Результат конкурса не определяет твою ценность.</p>
+            <p class="anim-item highlight" style="display: inline-block; font-size: 1.2rem; margin-bottom: 2rem;">Грант не создаёт твою значимость.</p>
+            
+            <p class="anim-item serif" style="font-size: 1.6rem; margin-bottom: 1.5rem;">Её создаёт:</p>
+            
+            <div class="value-tags anim-item">
+                <div class="value-tag">💡 Твой труд</div>
+                <div class="value-tag">📚 Твоя системность</div>
+                <div class="value-tag">🔥 Твоя настойчивость</div>
+                <div class="value-tag">🚀 Смелость попробовать</div>
+            </div>
+
+            <p class="anim-item" style="color: var(--text-muted); font-size: 1rem; line-height: 1.6;">
+                Подача документов утомляет. Ожидание давит. Неопределённость тревожит. <br><br>
+                <span style="color: var(--text-main); font-weight: 500; font-size: 1.1rem;">Но ничто из этого не уменьшает тебя.</span>
+            </p>
+
+            <button class="btn-next anim-item" onclick="nextStep(5)">О твоих чувствах</button>
+        </div>
+    </div>
+
+    <div class="step-container" id="step-5">
+        <div class="content-box">
+            <h2 class="anim-item">Текущее состояние —<br>это нормально</h2>
+            <p class="anim-item" style="margin-top: 1rem; color: var(--text-muted);">Как ты сейчас себя чувствуешь?</p>
+            
+            <div class="emotions anim-item">
+                <button class="emotion-btn" onclick="selectEmotion(this, 'Стресс говорит о том, что тебе не всё равно. Это признак усилия, а не слабости.', 'radial-gradient(circle at 50% 50%, rgba(220, 226, 217, 0.6) 0%, rgba(249, 248, 246, 0) 80%)')">
+                    😟 Чувствую стресс
+                </button>
+                <button class="emotion-btn" onclick="selectEmotion(this, 'Сомневаться — значит мыслить глубоко. Ты просто ищешь свой лучший путь.', 'radial-gradient(circle at 50% 50%, rgba(230, 233, 240, 0.8) 0%, rgba(249, 248, 246, 0) 80%)')">
+                    😔 Есть сомнения
+                </button>
+                <button class="emotion-btn" onclick="selectEmotion(this, 'Усталость — это естественно, когда ты так много вкладываешь. Дай себе право выдохнуть.', 'radial-gradient(circle at 50% 50%, rgba(245, 235, 220, 0.8) 0%, rgba(249, 248, 246, 0) 80%)')">
+                    😐 Накопилась усталость
+                </button>
+            </div>
+
+            <div class="sys-message" id="sys-msg"></div>
+
+            <button class="btn-next" id="btn-step-5" onclick="nextStep(6)">Идти дальше</button>
+        </div>
+    </div>
+
+    <div class="step-container" id="step-6">
+        <div class="content-box">
+            <div class="cert-box anim-item">
+                <div class="sticker" style="position: absolute; top: -20px; right: -10px;">🏆</div>
+                <h2 style="font-size: 2.2rem; margin-bottom: 1rem;">Сертификат силы</h2>
+                <p style="font-size: 0.95rem; color: var(--text-muted);">Настоящим подтверждается, что</p>
+                <h3 style="font-size: 2.8rem; margin: 1rem 0; color: #1A1C1B; border-bottom: 2px solid var(--accent-warm); display: inline-block; padding: 0 1.5rem;">Субхина</h3>
+                <p style="font-size: 0.95rem; color: var(--text-muted);">проявила:</p>
+                
+                <ul class="cert-list">
+                    <li>Настойчивость</li>
+                    <li>Академическую дисциплину</li>
+                    <li>Эмоциональную устойчивость</li>
+                    <li>Смелость подать документы</li>
+                    <li><b>Готовность двигаться вперёд независимо от результата</b></li>
+                </ul>
+                <p style="font-size: 0.85rem; color: #A8A096; margin-top: 2rem; font-style: italic;">Выдано тем, кто верит в её будущее.</p>
+            </div>
+            <button class="btn-next anim-item" onclick="nextStep(7)">Принять это</button>
+        </div>
+    </div>
+
+    <div class="step-container" id="step-7">
+        <div class="content-box">
+            <h2 class="anim-item">Хронология роста ⏳</h2>
+            <div class="timeline anim-item">
+                <div class="time-step">
+                    <h3 class="serif">До подачи</h3>
+                    <p style="color: var(--text-muted); font-size: 1rem;">Подготовка, сбор сил и знаний.</p>
+                </div>
+                <div class="time-step">
+                    <h3 class="serif">Во время подачи</h3>
+                    <p style="color: var(--text-muted); font-size: 1rem;">Давление, ожидание, надежда.</p>
+                </div>
+                <div class="time-step">
+                    <h3 class="serif">После результата</h3>
+                    <p style="color: var(--text-main); font-weight: 500; font-size: 1.1rem;">Новый этап жизни.</p>
+                </div>
+            </div>
+            
+            <p class="anim-item highlight" style="margin-top: 2rem; font-size: 1.3rem;">Рост присутствует на каждом этапе пути.</p>
+
+            <button class="btn-next anim-item" onclick="nextStep(8)">К финалу</button>
+        </div>
+    </div>
+
+    <div class="step-container" id="step-8">
+        <div class="content-box">
+            <h2 class="anim-item" style="font-size: 2.2rem; margin-bottom: 2rem;">Получится — прекрасно.<br>Не получится — ничего не потеряно.</h2>
+            
+
+            <p class="anim-item" style="margin-bottom: 1rem; font-size: 1.15rem;">Ты строишь жизнь, а не ставишь всё на одно решение.</p>
+            <p class="anim-item" style="margin-bottom: 3rem; font-size: 1.15rem;">Путей всегда больше одного.</p>
+            
+            <p class="anim-item serif" style="font-size: 1.6rem; margin-bottom: 0.5rem;">Сделай всё, что можешь.</p>
+            <p class="anim-item serif" style="font-size: 1.6rem; margin-bottom: 0.5rem;">Немного выдохни.</p>
+            <p class="anim-item serif" style="font-size: 1.6rem; margin-bottom: 3rem;">Позволь событиям развиваться естественно.</p>
+
+            <button class="btn-next anim-item" style="background: var(--text-main); border-radius: 8px; font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; padding: 1.2rem 3.5rem;" onclick="finalAction()">Что бы ни случилось</button>
+            
+            <div id="final-text" class="serif" style="margin-top: 2.5rem; font-size: 2.8rem; opacity: 0; transition: opacity 2s ease;">
+                ты уже движешься вперёд.
+            </div>
+            
+            <div id="sys-final" style="margin-top: 1.5rem; font-size: 1rem; color: var(--text-muted); opacity: 0; transition: opacity 3s ease 1s;">
+                Ты способна на все ✨
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pathsClicked = 0;
+
+        function animateItems(container) {
+            const items = container.querySelectorAll('.anim-item');
+            items.forEach((item, index) => {
+                setTimeout(() => {
+                    item.classList.add('show');
+                }, index * 200); // Чуть ускорил появление (200мс)
+            });
+        }
+
+        function nextStep(stepNumber) {
+            const current = document.querySelector('.step-container.active');
+            if (current) {
+                current.classList.remove('active');
+                current.classList.add('exit');
+            }
+
+            setTimeout(() => {
+                const next = document.getElementById(`step-${stepNumber}`);
+                if (next) {
+                    next.classList.remove('exit');
+                    next.classList.add('active');
+                    next.scrollTop = 0;
+                    animateItems(next);
+                }
+            }, 500);
+        }
+
+        function togglePath(id, btn) {
+            const content = document.getElementById(id);
+            if (content.style.display !== 'block') {
+                content.style.display = 'block';
+                btn.style.borderColor = '#1A1C1B';
+                btn.style.background = '#fff';
+                pathsClicked++;
+                
+                if (pathsClicked === 1) {
+                    setTimeout(() => {
+                        document.getElementById('btn-step-3').classList.add('show');
+                    }, 800);
+                }
+            }
+        }
+
+        // Обновленная логика эмоций (принимает текст сообщения и цвет фона)
+        function selectEmotion(btn, msg, bgGradient) {
+            document.querySelectorAll('.emotion-btn').forEach(b => {
+                b.classList.remove('selected');
+                b.style.opacity = '0.6';
+            });
+            btn.classList.add('selected');
+            btn.style.opacity = '1';
+
+            const msgBox = document.getElementById('sys-msg');
+            msgBox.style.opacity = '0';
+            
+            // Меняем фон в зависимости от выбранной эмоции
+            document.getElementById('ambient-bg').style.background = bgGradient;
+
+            setTimeout(() => {
+                msgBox.innerHTML = msg;
+                msgBox.style.opacity = '1';
+                
+                setTimeout(() => {
+                    document.getElementById('btn-step-5').classList.add('show');
+                }, 600);
+            }, 300);
+        }
+
+        function finalAction() {
+            document.getElementById('final-text').style.opacity = '1';
+            document.getElementById('sys-final').style.opacity = '1';
+            document.getElementById('ambient-bg').style.background = 'radial-gradient(circle at 50% 50%, rgba(234, 227, 210, 0.9) 0%, rgba(249, 248, 246, 0.5) 100%)';
+        }
+
+        window.onload = () => {
+            setTimeout(() => {
+                animateItems(document.getElementById('step-1'));
+            }, 300);
+        };
+    </script>
+</body>
+</html>
