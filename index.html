@@ -24,12 +24,14 @@
             color: var(--text-main);
             background-color: var(--bg-color);
             line-height: 1.7;
-            overflow: hidden; /* Общий скролл заблокирован, скроллится только внутри шагов */
+            overflow: hidden; /* Блокируем скролл тела, скроллим контейнеры */
+            height: 100vh;
+            width: 100vw;
         }
 
         /* Дышащий фон */
         .ambient-bg {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle at 50% 50%, rgba(234, 227, 210, 0.5) 0%, rgba(249, 248, 246, 0) 80%);
             z-index: -1; pointer-events: none;
             animation: breathe 12s infinite alternate ease-in-out;
@@ -46,14 +48,28 @@
             font-weight: 500; color: #1A1C1B; line-height: 1.3;
         }
 
-        /* ИДЕАЛЬНЫЙ КОНТЕЙНЕР ДЛЯ СКРОЛЛА */
+        /* --- ГЛАВНЫЙ КОНТЕЙНЕР ШАГА (ИСПРАВЛЕН СКРОЛЛ) --- */
         .step-container {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            /* Flexbox для вертикального центрирования с учетом скролла */
+            display: flex; flex-direction: column; align-items: center;
+            
             opacity: 0; pointer-events: none; transform: translateY(40px) scale(0.98);
             transition: var(--transition-slow);
-            overflow-y: auto; /* Включаем скролл */
+            
+            /* Разрешаем скролл внутри шага */
+            overflow-y: auto; 
             overflow-x: hidden;
-            -webkit-overflow-scrolling: touch; /* Плавный скролл для iOS */
+            -webkit-overflow-scrolling: touch; /* Плавность на iOS */
+        }
+
+        /* Эти псевдоэлементы толкают контент в центр, если места много,
+           но не мешают скроллу, если места мало (как на мобильном) */
+        .step-container::before,
+        .step-container::after {
+            content: '';
+            flex: 1 0 auto; /* Гибкая высота */
+            min-height: 2rem; /* Минимальный отступ сверху/снизу */
         }
         
         .step-container.active {
@@ -64,13 +80,12 @@
             opacity: 0; transform: translateY(-40px) scale(0.98);
         }
 
-        /* Внутренний блок (решает проблему обрезания верха) */
+        /* Внутренний блок контента */
         .content-box {
-            min-height: 100%; /* Растягиваем минимум на весь экран */
-            max-width: 600px; margin: 0 auto; 
-            padding: 4rem 1.5rem; /* Отступы сверху и снизу */
-            display: flex; flex-direction: column; justify-content: center; align-items: center; 
-            text-align: center;
+            width: 100%; max-width: 600px;
+            padding: 1rem 1.5rem; /* Безопасные отступы по бокам */
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            flex-shrink: 0; /* Запрещает блоку сжиматься */
         }
 
         /* Анимация элементов */
@@ -82,7 +97,7 @@
             opacity: 1; transform: translateY(0); filter: blur(0);
         }
 
-        /* Кнопки "Далее" */
+        /* Кнопки */
         .btn-next {
             margin-top: 3rem; padding: 1.2rem 3.5rem;
             background: var(--btn-bg); color: var(--btn-text);
@@ -91,6 +106,7 @@
             cursor: pointer; transition: var(--transition-fast);
             opacity: 0; transform: translateY(10px); pointer-events: none;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            margin-bottom: 2rem; /* Отступ снизу для мобильных */
         }
         .active .btn-next.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
         .btn-next:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
@@ -100,7 +116,7 @@
             padding: 0 8px; border-radius: 4px;
         }
 
-        /* Эстетичные изображения */
+        /* Изображения */
         .aesthetic-img {
             width: 100%; max-width: 450px; height: 250px;
             object-fit: cover; border-radius: 20px;
@@ -108,7 +124,7 @@
             border: 4px solid #fff;
         }
 
-        /* Плавающие стикеры */
+        /* Стикеры */
         .sticker {
             display: inline-block;
             animation: float 4s ease-in-out infinite;
@@ -119,7 +135,7 @@
             50% { transform: translateY(-10px) rotate(5deg); }
         }
 
-        /* СТИЛЬНЫЕ СПИСКИ (Теги вместо точек) */
+        /* Теги */
         .value-tags {
             display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 1.5rem 0 2.5rem 0;
         }
@@ -130,9 +146,8 @@
             display: flex; align-items: center; gap: 8px;
             transition: transform 0.3s ease;
         }
-        .value-tag:hover { transform: translateY(-3px); }
 
-        /* Интерактивные пути */
+        /* Пути */
         .path-grid { display: flex; flex-direction: column; gap: 1rem; width: 100%; margin-top: 1.5rem; }
         .path-btn {
             background: rgba(255,255,255,0.7); border: 1px solid #EAE3D2;
@@ -141,7 +156,7 @@
             transition: var(--transition-fast); backdrop-filter: blur(10px);
             display: flex; justify-content: center; align-items: center; gap: 10px;
         }
-        .path-btn:hover { background: #fff; transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .path-btn:hover { background: #fff; }
         .path-content {
             display: none; text-align: left; padding: 2rem;
             background: #fff; border-radius: 20px; margin-top: 0.5rem;
@@ -168,10 +183,7 @@
             font-family: inherit; font-size: 1.1rem; transition: var(--transition-fast);
             display: flex; align-items: center; justify-content: center; gap: 10px;
         }
-        .emotion-btn:hover, .emotion-btn.selected {
-            background: #fff; border-color: var(--text-main); transform: scale(1.02);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-        }
+        .emotion-btn.selected { background: #fff; border-color: var(--text-main); transform: scale(1.02); }
         .sys-message {
             margin-top: 2rem; font-family: 'Cormorant Garamond', serif;
             font-size: 1.4rem; font-style: italic; color: var(--text-main);
@@ -208,7 +220,6 @@
             .path-btn { font-size: 1.3rem; padding: 1rem; }
             .value-tag { font-size: 0.95rem; padding: 8px 16px; }
             .aesthetic-img { height: 200px; }
-            .content-box { padding: 3rem 1.2rem; }
         }
     </style>
 </head>
@@ -229,16 +240,12 @@
     <div class="step-container" id="step-2">
         <div class="content-box">
             <h2 class="anim-item" style="margin-bottom: 1rem;">Твоя база — с тобой</h2>
-            
             <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=800&q=80" alt="Учеба" class="aesthetic-img anim-item">
-            
             <p class="anim-item" style="margin-bottom: 0.8rem; font-size: 1.1rem;">Ты изучаешь английский.</p>
             <p class="anim-item" style="margin-bottom: 0.8rem; font-size: 1.1rem;">Ты серьёзно работаешь над китайским.</p>
             <p class="anim-item" style="margin-bottom: 2rem; font-size: 1.1rem;">У тебя впереди сертификаты, знания и сильная академическая база.</p>
-            
             <p class="anim-item serif highlight" style="display: inline-block; font-size: 1.6rem; margin-bottom: 0.5rem;">Это не случайность.</p>
             <p class="anim-item" style="color: var(--text-muted);">Это результат дисциплины, усилий и внутренней силы.</p>
-            
             <button class="btn-next anim-item" onclick="nextStep(3)">Посмотреть варианты</button>
         </div>
     </div>
@@ -246,7 +253,6 @@
     <div class="step-container" id="step-3">
         <div class="content-box">
             <h2 class="anim-item">Два пути.<br>Один итог — <span class="highlight">развитие</span> 🌿</h2>
-            
             <div class="path-grid anim-item">
                 <button class="path-btn" onclick="togglePath('path-win', this)">🎓 Если грант получится</button>
                 <div class="path-content" id="path-win">
@@ -269,7 +275,6 @@
                     <p class="serif" style="font-size: 1.6rem; text-align: center; margin-top: 1.5rem; color: #1A1C1B;">Ты всё равно вырастешь.</p>
                 </div>
             </div>
-
             <button class="btn-next" id="btn-step-3" onclick="nextStep(4)">Что действительно важно?</button>
         </div>
     </div>
@@ -279,21 +284,17 @@
             <h2 class="anim-item" style="margin-bottom: 1rem;">Твоя ценность</h2>
             <p class="anim-item" style="font-size: 1.2rem; margin-bottom: 0.5rem;">Результат конкурса не определяет твою ценность.</p>
             <p class="anim-item highlight" style="display: inline-block; font-size: 1.2rem; margin-bottom: 2rem;">Грант не создаёт твою значимость.</p>
-            
             <p class="anim-item serif" style="font-size: 1.6rem; margin-bottom: 1.5rem;">Её создаёт:</p>
-            
             <div class="value-tags anim-item">
-                <div class="value-tag">💡 Твой труд</div>
+                <div class="value-tag">💡 Твой труд  </div>
                 <div class="value-tag">📚 Твоя системность</div>
                 <div class="value-tag">🔥 Твоя настойчивость</div>
                 <div class="value-tag">🚀 Смелость попробовать</div>
             </div>
-
             <p class="anim-item" style="color: var(--text-muted); font-size: 1rem; line-height: 1.6;">
                 Подача документов утомляет. Ожидание давит. Неопределённость тревожит. <br><br>
                 <span style="color: var(--text-main); font-weight: 500; font-size: 1.1rem;">Но ничто из этого не уменьшает тебя.</span>
             </p>
-
             <button class="btn-next anim-item" onclick="nextStep(5)">О твоих чувствах</button>
         </div>
     </div>
@@ -302,21 +303,12 @@
         <div class="content-box">
             <h2 class="anim-item">Текущее состояние —<br>это нормально</h2>
             <p class="anim-item" style="margin-top: 1rem; color: var(--text-muted);">Как ты сейчас себя чувствуешь?</p>
-            
             <div class="emotions anim-item">
-                <button class="emotion-btn" onclick="selectEmotion(this, 'Стресс говорит о том, что тебе не всё равно. Это признак усилия, а не слабости.', 'radial-gradient(circle at 50% 50%, rgba(220, 226, 217, 0.6) 0%, rgba(249, 248, 246, 0) 80%)')">
-                    😟 Чувствую стресс
-                </button>
-                <button class="emotion-btn" onclick="selectEmotion(this, 'Сомневаться — значит мыслить глубоко. Ты просто ищешь свой лучший путь.', 'radial-gradient(circle at 50% 50%, rgba(230, 233, 240, 0.8) 0%, rgba(249, 248, 246, 0) 80%)')">
-                    😔 Есть сомнения
-                </button>
-                <button class="emotion-btn" onclick="selectEmotion(this, 'Усталость — это естественно, когда ты так много вкладываешь. Дай себе право выдохнуть.', 'radial-gradient(circle at 50% 50%, rgba(245, 235, 220, 0.8) 0%, rgba(249, 248, 246, 0) 80%)')">
-                    😐 Накопилась усталость
-                </button>
+                <button class="emotion-btn" onclick="selectEmotion(this, 'Стресс говорит о том, что тебе не всё равно. Это признак усилия, а не слабости.', 'radial-gradient(circle at 50% 50%, rgba(220, 226, 217, 0.6) 0%, rgba(249, 248, 246, 0) 80%)')">😟 Чувствую стресс</button>
+                <button class="emotion-btn" onclick="selectEmotion(this, 'Сомневаться — значит мыслить глубоко. Ты просто ищешь свой лучший путь.', 'radial-gradient(circle at 50% 50%, rgba(230, 233, 240, 0.8) 0%, rgba(249, 248, 246, 0) 80%)')">😔 Есть сомнения</button>
+                <button class="emotion-btn" onclick="selectEmotion(this, 'Усталость — это естественно, когда ты так много вкладываешь. Дай себе право выдохнуть.', 'radial-gradient(circle at 50% 50%, rgba(245, 235, 220, 0.8) 0%, rgba(249, 248, 246, 0) 80%)')">😐 Накопилась усталость</button>
             </div>
-
             <div class="sys-message" id="sys-msg"></div>
-
             <button class="btn-next" id="btn-step-5" onclick="nextStep(6)">Идти дальше</button>
         </div>
     </div>
@@ -329,7 +321,6 @@
                 <p style="font-size: 0.95rem; color: var(--text-muted);">Настоящим подтверждается, что</p>
                 <h3 style="font-size: 2.8rem; margin: 1rem 0; color: #1A1C1B; border-bottom: 2px solid var(--accent-warm); display: inline-block; padding: 0 1.5rem;">Субхина</h3>
                 <p style="font-size: 0.95rem; color: var(--text-muted);">проявила:</p>
-                
                 <ul class="cert-list">
                     <li>Настойчивость</li>
                     <li>Академическую дисциплину</li>
@@ -360,9 +351,7 @@
                     <p style="color: var(--text-main); font-weight: 500; font-size: 1.1rem;">Новый этап жизни.</p>
                 </div>
             </div>
-            
             <p class="anim-item highlight" style="margin-top: 2rem; font-size: 1.3rem;">Рост присутствует на каждом этапе пути.</p>
-
             <button class="btn-next anim-item" onclick="nextStep(8)">К финалу</button>
         </div>
     </div>
@@ -370,23 +359,20 @@
     <div class="step-container" id="step-8">
         <div class="content-box">
             <h2 class="anim-item" style="font-size: 2.2rem; margin-bottom: 2rem;">Получится — прекрасно.<br>Не получится — ничего не потеряно.</h2>
-            
             <p class="anim-item" style="margin-bottom: 1rem; font-size: 1.15rem;">Ты строишь жизнь, а не ставишь всё на одно решение.</p>
             <p class="anim-item" style="margin-bottom: 3rem; font-size: 1.15rem;">Путей всегда больше одного.</p>
-            
             <p class="anim-item serif" style="font-size: 1.6rem; margin-bottom: 0.5rem;">Сделай всё, что можешь.</p>
             <p class="anim-item serif" style="font-size: 1.6rem; margin-bottom: 0.5rem;">Немного выдохни.</p>
             <p class="anim-item serif" style="font-size: 1.6rem; margin-bottom: 3rem;">Позволь событиям развиваться естественно.</p>
-
             <button class="btn-next anim-item" style="background: var(--text-main); border-radius: 8px; font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; padding: 1.2rem 3.5rem;" onclick="finalAction()">Что бы ни случилось</button>
             
             <div id="final-text" class="serif" style="margin-top: 2.5rem; font-size: 2.8rem; opacity: 0; transition: opacity 2s ease;">
                 ты уже движешься вперёд.
             </div>
-            
             <div id="sys-final" style="margin-top: 1.5rem; font-size: 1rem; color: var(--text-muted); opacity: 0; transition: opacity 3s ease 1s;">
                 Ты способна на все ✨
             </div>
+            <div style="height: 50px; flex-shrink: 0;"></div>
         </div>
     </div>
 
@@ -414,7 +400,7 @@
                 if (next) {
                     next.classList.remove('exit');
                     next.classList.add('active');
-                    next.scrollTop = 0;
+                    next.scrollTop = 0; // Сброс скролла наверх
                     animateItems(next);
                 }
             }, 500);
@@ -427,7 +413,6 @@
                 btn.style.borderColor = '#1A1C1B';
                 btn.style.background = '#fff';
                 pathsClicked++;
-                
                 if (pathsClicked === 1) {
                     setTimeout(() => {
                         document.getElementById('btn-step-3').classList.add('show');
@@ -447,12 +432,12 @@
             const msgBox = document.getElementById('sys-msg');
             msgBox.style.opacity = '0';
             
-            document.getElementById('ambient-bg').style.background = bgGradient;
+            // Безопасное изменение фона
+            document.getElementById('ambient-bg').style.backgroundImage = bgGradient;
 
             setTimeout(() => {
                 msgBox.innerHTML = msg;
                 msgBox.style.opacity = '1';
-                
                 setTimeout(() => {
                     document.getElementById('btn-step-5').classList.add('show');
                 }, 600);
@@ -460,9 +445,22 @@
         }
 
         function finalAction() {
+            // Показываем текст
             document.getElementById('final-text').style.opacity = '1';
             document.getElementById('sys-final').style.opacity = '1';
-            document.getElementById('ambient-bg').style.background = 'radial-gradient(circle at 50% 50%, rgba(234, 227, 210, 0.9) 0%, rgba(249, 248, 246, 0.5) 100%)';
+            
+            // Меняем фон
+            document.getElementById('ambient-bg').style.backgroundImage = 
+                'radial-gradient(circle at 50% 50%, rgba(234, 227, 210, 0.9) 0%, rgba(249, 248, 246, 0.6) 100%)';
+
+            // Авто-скролл вниз, чтобы увидеть текст на мобильном
+            setTimeout(() => {
+                const step8 = document.getElementById('step-8');
+                step8.scrollTo({
+                    top: step8.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 100);
         }
 
         window.onload = () => {
