@@ -46,13 +46,14 @@
             font-weight: 500; color: #1A1C1B; line-height: 1.3;
         }
 
-        /* Контейнер для шагов */
+        /* Контейнер для шагов (ИСПРАВЛЕН СКРОЛЛ) */
         .step-container {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            display: flex; flex-direction: column; align-items: center; /* Убрано justify-content: center, чтобы не обрезался верх */
             opacity: 0; pointer-events: none; transform: translateY(40px) scale(0.98);
             transition: var(--transition-slow);
             padding: 2rem; overflow-y: auto; overflow-x: hidden;
+            -webkit-overflow-scrolling: touch; /* Плавный скролл на мобильных */
         }
         .step-container.active {
             opacity: 1; pointer-events: auto; transform: translateY(0) scale(1);
@@ -395,7 +396,7 @@
             items.forEach((item, index) => {
                 setTimeout(() => {
                     item.classList.add('show');
-                }, index * 200); // Чуть ускорил появление (200мс)
+                }, index * 200); 
             });
         }
 
@@ -433,7 +434,6 @@
             }
         }
 
-        // Обновленная логика эмоций (принимает текст сообщения и цвет фона)
         function selectEmotion(btn, msg, bgGradient) {
             document.querySelectorAll('.emotion-btn').forEach(b => {
                 b.classList.remove('selected');
@@ -445,7 +445,6 @@
             const msgBox = document.getElementById('sys-msg');
             msgBox.style.opacity = '0';
             
-            // Меняем фон в зависимости от выбранной эмоции
             document.getElementById('ambient-bg').style.background = bgGradient;
 
             setTimeout(() => {
